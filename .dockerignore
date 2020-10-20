@@ -1,0 +1,10 @@
+# Directories
+__pycache__/
+.env/
+.git/
+
+# Files
+*.pyc
+*.db
+README.md
+.gitignore
