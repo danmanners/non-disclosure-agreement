@@ -27,6 +27,7 @@ def check_table_exists(dbName, db_file_name):
         c.close()
         return True
 
+# Create the Table
 def create_table(database, db_file_name):
     db = sqlite3.connect(db_file_name)
     c = db.cursor()
@@ -37,34 +38,51 @@ def create_table(database, db_file_name):
     db.commit()
     db.close()
 
+# Create a row in the database
 def add_item(database, db_file_name, request_ip, url):
     try:
         j = json.loads(url)['data']
     except:
         j = url
 
-    hashcode = secrets.token_hex(32)
+    token_id = secrets.token_hex(32)
     db = sqlite3.connect(db_file_name)
     db.row_factory = dict_factory
     c = db.cursor()
     now = datetime.now().isoformat(timespec='minutes')
     c.execute("INSERT INTO {}(date,HostIP,hash,url) VALUES(?,?,?,?)".format(database), 
-        (now, request_ip, hashcode, j)
-    )
+        (now, request_ip, token_id, j))
     c.close()
     db.commit()
     db.close()
-    return hashcode
+    return token_id
 
-def get_code(database, db_file_name, hashcode):
+# Attempt to retrieve data from the database
+def get_code(database, db_file_name, token_id):
     db = sqlite3.connect(db_file_name)
     db.row_factory = dict_factory
     c = db.cursor()
-    c.execute("SELECT url FROM {} where hash LIKE \'{}\'".format(database, hashcode))
-    data = c.fetchall()[0]
+    c.execute("SELECT url FROM {} where hash LIKE \'{}\'".format(database, token_id))
+
+    try:
+        data = c.fetchall()[0]
+    except:
+        data = "token deleted, or it never existed."        
+
     db.commit()
     db.close()
 
     if isinstance(data, bytes): return data.decode('ascii')
-
+    if isinstance(data, str): return data
     return str(data['url'])
+
+# Attempt to delete a row from the database
+def delete_code(database, db_file_name, token_id):
+    db = sqlite3.connect(db_file_name)
+    db.row_factory = dict_factory
+    c = db.cursor()
+    c.execute("DELETE FROM {} where hash LIKE \'{}\'".format(database, token_id))
+    db.commit()
+    db.close()
+
+    return 'token deleted, or it never existed.'
