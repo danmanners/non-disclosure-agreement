@@ -1,7 +1,13 @@
 import sqlite3, secrets, json
 from datetime import datetime
 
-from functions.main import dict_factory
+# Dict Factory, taken from here:
+# https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.row_factory
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
 
 # Create DB file
 def check_table_exists(dbName, db_file_name):
@@ -32,15 +38,19 @@ def create_table(database, db_file_name):
     db.close()
 
 def add_item(database, db_file_name, request_ip, url):
-    j = json.loads(url)['data']
+    try:
+        j = json.loads(url)['data']
+    except:
+        j = url
+
     hashcode = secrets.token_hex(32)
     db = sqlite3.connect(db_file_name)
     db.row_factory = dict_factory
     c = db.cursor()
     now = datetime.now().isoformat(timespec='minutes')
-    c.execute("INSERT INTO {}(date,HostIP,hash,url) VALUES(\'{}\',\'{}\',\'{}\',\'{}\')".format(
-        database, now, request_ip, hashcode, j
-    ))
+    c.execute("INSERT INTO {}(date,HostIP,hash,url) VALUES(?,?,?,?)".format(database), 
+        (now, request_ip, hashcode, j)
+    )
     c.close()
     db.commit()
     db.close()
@@ -54,5 +64,7 @@ def get_code(database, db_file_name, hashcode):
     data = c.fetchall()[0]
     db.commit()
     db.close()
+
+    if isinstance(data, bytes): return data.decode('ascii')
 
     return str(data['url'])

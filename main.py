@@ -1,5 +1,5 @@
 import os, time
-from flask import Flask, redirect, request
+from flask import Flask, redirect, request, make_response
 
 from routes.routes import main_page
 from db.sqlite import check_table_exists, create_table, add_item, get_code
@@ -15,26 +15,31 @@ def hash_return(hashcode):
     if request.method == 'GET':
         output = get_code(database, db_file_name, hashcode)
         if output.startswith("http"):
-            print(output)
             return redirect(output, code=302)
         else:
             return output
-    if request.method == 'POST':
+    elif request.method == 'POST':
         return "Nope, fuck you."
+    elif request.method == 'HEAD':
+        resp = make_response()
+        resp.headers['Server'] = 'Trying to get some head?'
+        return resp
+    else:
+        return "Big Nope, my dude."
 
-@nda.route('/new/', methods=['POST'])
+@nda.route('/new/', methods=['GET','POST'])
 def create_hash():
     if request.method == 'POST':
-        data = request.get_data()
+        data = request.get_data().decode("utf-8")
+
         return add_item(
             database,
             db_file_name,
             request.remote_addr,
             data
         )
-
-    if request.method == 'GET':
-        return "Nope, fuck you."        
+    elif request.method == 'GET':
+        return "Nope, fuck you."
 
 # If Running as the primary application
 if __name__ == '__main__':
