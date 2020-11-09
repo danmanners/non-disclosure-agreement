@@ -1,0 +1,17 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nda
+  namespace: nda
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: nda.danmanners.io
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: nda
+              servicePort: http
