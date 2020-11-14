@@ -1,10 +1,9 @@
 import os, time
-import redis
 from flask import Flask, redirect, request, make_response
 
 from routes.routes import main_page
+from db.sqlite import check_table_exists, create_table, add_item, get_code, delete_code
 
-# Start NDA
 nda = Flask(__name__)
 
 # Route to Main Page

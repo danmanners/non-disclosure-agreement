@@ -1,6 +1,7 @@
 # Directories
 .env/
 __pycache__/
+web/
 
 # Files
 .DS_Store

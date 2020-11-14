@@ -1,3 +1,7 @@
+# This is the deprecated first version using SQLite
+
+Don't use it, but you know...it's here.
+
 # Non-Disclosure Agreement
 
 This project goal is to provide users a way to share files, strings, or URL's with each other by using a token. When creating the token, specifications for the lifetime of the object can be dictated. Once an object has reached the end of its life, it will behave as though it never existed.
@@ -44,3 +48,9 @@ You can verify the token was deleted by attempting to hit it again
 ➜  curl localhost:3000/bf0f75323a5684c82f6cfc80190eb6589a96f511f80fb4573fe9235ad94a0fb6%
 token deleted, or it never existed.%
 ```
+
+## Notes
+
+Right now, this application only uses a SQLITE3 database. This should be swapped for something else before any semblance of scale can be achieved.
+
+I'm also not sure why you'd want to scale it. This is really just a shitty proof-of-concept.
