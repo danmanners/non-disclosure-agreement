@@ -1,8 +1,10 @@
-import os, time
-import redis
+import os, time, json
 from flask import Flask, redirect, request, make_response
 
-from routes.routes import main_page
+import redis
+
+from functions.routes import main_page
+from functions.redis_Call import add_item, get_item, del_item
 
 # Start NDA
 nda = Flask(__name__)
@@ -10,19 +12,43 @@ nda = Flask(__name__)
 # Route to Main Page
 nda.add_url_rule("/", "main_page", main_page)
 
-# Route to token_id
+# Create New Token
+@nda.route('/new/', methods=['GET','POST'])
+def create_hash():
+    if request.method == 'POST':
+        data = request.get_data().decode("utf-8")
+
+        return str(add_item(data, request.remote_addr))
+
+    elif request.method == 'GET':
+        return "Null"
+
+# Retrieve or Delete Existing Token
 @nda.route('/<token_id>', methods=['GET','POST','DELETE'])
-def hash_return(token_id):
+def token_return(token_id):
     # Retrieving data from the token
     if request.method == 'GET':
-        output = get_code(database, db_file_name, token_id)
+        output = get_item(token_id)
         # URL Redirection
-        if output.startswith("http"):
-            return redirect(output, code=302)
-        if output.startswith("www."):
-            return redirect(str("http://" + output), code=302)
-        # Bog-standard return of the output
-        else:
+        try:
+            if type(output) is dict:
+                data = json.dumps(output['data'])
+
+                if data.startswith("http"):
+                    print("True")
+                elif data.startswith("\""):
+                    print("False")
+                else:
+                    print("False")
+
+                if data.startswith("http"):
+                    return redirect(data, code=302)
+                if data.startswith("www."):
+                    return redirect(str("http://" + data), code=302)
+                # Bog-standard return of the output
+            else:
+                return output
+        except:
             return output
     # You're not allowed to POST here.
     elif request.method == 'POST':
@@ -34,36 +60,12 @@ def hash_return(token_id):
         return resp
     # Attempting to Delete
     elif request.method == "DELETE":
-        output = delete_code(database, db_file_name, token_id)
+        output = del_item(token_id)
         return output
     else:
         return "Big Nope, my dude."
 
-@nda.route('/new/', methods=['GET','POST'])
-def create_hash():
-    if request.method == 'POST':
-        data = request.get_data().decode("utf-8")
-
-        return add_item(
-            database,
-            db_file_name,
-            request.remote_addr,
-            data
-        )
-    elif request.method == 'GET':
-        return "Null"
-
 # If Running as the primary application
 if __name__ == '__main__':
-
-    database     = os.getenv('NDA_DB_NAME','nda_items')
-    db_file_name = os.getenv('NDA_DB_FILE','nda.db')
-
-    while check_table_exists(database,db_file_name) is False:
-        print("❌ Database '{}' not found. Creating it now.".format(database))
-        create_table(database,db_file_name)
-
-    print("✔  Database '{}' found. Starting server.".format(database))
-
     port = int(os.environ.get('PORT', 3000))
     nda.run(host='0.0.0.0', port=port)

@@ -4,7 +4,14 @@ This project goal is to provide users a way to share files, strings, or URL's wi
 
 ## Usage
 
-Run the application with `python main.py`.
+Run the application with the following command:
+
+```bash
+REDIS_HOST="localhost" \
+REDIS_PORT=6380 \
+REDIS_PASS="password" \
+gunicorn -w4 main:nda
+```
 
 ### Adding new Data
 

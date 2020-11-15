@@ -40,6 +40,45 @@ spec:
           protocol: TCP
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        environment:
+        
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: nda-redis
+  name: nda-redis
+  namespace: nda
+spec:
+  progressDeadlineSeconds: 30
+  replicas: 1
+  selector:
+    matchLabels:
+      run: nda-redis
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: nda-redis
+    spec:
+      containers:
+      - image: redis:6.0-alpine
+        imagePullPolicy: Always
+        name: redis
+        ports:
+        - containerPort: 6379
+          protocol: TCP
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       securityContext: {}
